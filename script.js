@@ -200,9 +200,18 @@ async function extractOrderFromText(page, pageNum) {
             }
         }
 
-        // Extract phone - pattern (###) ###-####
-        const phoneMatch = shipToLine.match(/\((\d{3})\)\s*(\d{3})-(\d{4})/);
-        if (phoneMatch) phone = `(${phoneMatch[1]}) ${phoneMatch[2]}-${phoneMatch[3]}`;
+        // Extract phone - appears after zip code, multiple formats
+        // Formats: (###) ###-####, ###-###-####, ##########
+        const phoneMatch = shipToLine.match(/\d{5}\s+([\d\s()-]+\d{4})/);
+        if (phoneMatch) {
+            // Clean up phone number and format consistently
+            const rawPhone = phoneMatch[1].replace(/[^\d]/g, ''); // Remove all non-digits
+            if (rawPhone.length === 10) {
+                phone = `(${rawPhone.slice(0, 3)}) ${rawPhone.slice(3, 6)}-${rawPhone.slice(6)}`;
+            } else {
+                phone = phoneMatch[1].trim(); // Keep original if not 10 digits
+            }
+        }
     }
 
     // Line 7: Model Number
