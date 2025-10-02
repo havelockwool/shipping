@@ -144,20 +144,35 @@ body {
     text-overflow: clip;
 }
 
-/* Custom column widths - percentages to fit screen */
+/* Custom column widths */
+.table-container th:nth-child(1) { width: 30px; }  /* Page */
+.table-container th:nth-child(2) { width: 50px; }  /* Date */
+.table-container th:nth-child(3) { width: 60px; } /* Cust Order # */
+.table-container th:nth-child(4) { width: 60px; } /* PO Number */
+.table-container th:nth-child(5) { width: 100px; } /* Customer Name */
+.table-container th:nth-child(6) { width: 100px; } /* Ship To Name */
+.table-container th:nth-child(7) { width: 250px; } /* Customer Address */
+.table-container th:nth-child(8) { width: 250px; } /* Ship To Address */
+.table-container th:nth-child(9) { width: 80px; } /* Phone */
+.table-container th:nth-child(10) { width: 70px; } /* Address Type */
+.table-container th:nth-child(11) { width: 60px; } /* Model Number */
+.table-container th:nth-child(12) { width: 70px; } /* Internet Num */
+.table-container th:nth-child(13) { width: 30px; }  /* Qty Shipped */
+
+Custom column widths - percentages to fit screen
 .table-container th:nth-child(1) { width: 3%; }   /* Page */
 .table-container th:nth-child(2) { width: 5%; }   /* Date */
 .table-container th:nth-child(3) { width: 8%; }   /* Cust Order # */
 .table-container th:nth-child(4) { width: 7%; }   /* PO Number */
 .table-container th:nth-child(5) { width: 10%; }  /* Customer Name */
 .table-container th:nth-child(6) { width: 10%; }  /* Ship To Name */
-.table-container th:nth-child(7) { width: 16%; }  /* Customer Address */
-.table-container th:nth-child(8) { width: 16%; }  /* Ship To Address */
+.table-container th:nth-child(7) { width: 20%; }  /* Customer Address */
+.table-container th:nth-child(8) { width: 20%; }  /* Ship To Address */
 .table-container th:nth-child(9) { width: 8%; }   /* Phone */
 .table-container th:nth-child(10) { width: 6%; }  /* Address Type */
 .table-container th:nth-child(11) { width: 5%; }  /* Model Number */
 .table-container th:nth-child(12) { width: 6%; }  /* Internet Num */
-.table-container th:nth-child(13) { width: 4%; }  /* Qty Shipped */
+.table-container th:nth-child(13) { width: 3%; }  /* Qty Shipped */
 
 .table-container td:nth-child(1) { width: 3%; }
 .table-container td:nth-child(2) { width: 5%; }
