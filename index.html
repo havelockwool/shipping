@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice Processor</title>
+    <title>Home Depot Invoice Processor</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="styles.css">
@@ -11,7 +11,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📦 Invoice Processor</h1>
+            <h1>📦 Home Depot Invoice Processor</h1>
             <p>Upload your PDF invoice to extract and process orders</p>
         </div>
 
@@ -42,11 +42,18 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Order #</th>
                             <th>Page</th>
-                            <th>Address</th>
-                            <th>Shipment Type</th>
-                            <th>Carrier</th>
+                            <th>Date</th>
+                            <th>Cust Order #</th>
+                            <th>PO Number</th>
+                            <th>Customer Name</th>
+                            <th>Ship To Name</th>
+                            <th>Ship To Address</th>
+                            <th>Phone</th>
+                            <th>Address Type</th>
+                            <th>Model Number</th>
+                            <th>Internet Num</th>
+                            <th>Qty Shipped</th>
                         </tr>
                     </thead>
                     <tbody id="dataTable"></tbody>
@@ -67,7 +74,7 @@
         </div>
 
         <div class="footer">
-            Invoice Processor v1.0 - Test Version
+            Home Depot Invoice Processor v1.0 - Check browser console for extracted text
         </div>
     </div>
 
