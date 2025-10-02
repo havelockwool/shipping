@@ -136,6 +136,35 @@ body {
     text-overflow: clip;
 }
 
+/* Custom column widths */
+.table-container th:nth-child(1) { width: 30px; }  /* Page */
+.table-container th:nth-child(2) { width: 50px; }  /* Date */
+.table-container th:nth-child(3) { width: 80px; } /* Cust Order # */
+.table-container th:nth-child(4) { width: 80px; } /* PO Number */
+.table-container th:nth-child(5) { width: 120px; } /* Customer Name */
+.table-container th:nth-child(6) { width: 120px; } /* Ship To Name */
+.table-container th:nth-child(7) { width: 250px; } /* Customer Address */
+.table-container th:nth-child(8) { width: 250px; } /* Ship To Address */
+.table-container th:nth-child(9) { width: 100px; } /* Phone */
+.table-container th:nth-child(10) { width: 80px; } /* Address Type */
+.table-container th:nth-child(11) { width: 60px; } /* Model Number */
+.table-container th:nth-child(12) { width: 80px; } /* Internet Num */
+.table-container th:nth-child(13) { width: 50px; }  /* Qty Shipped */
+
+/* .table-container td:nth-child(1) { width: 50px; }
+.table-container td:nth-child(2) { width: 80px; }
+.table-container td:nth-child(3) { width: 120px; }
+.table-container td:nth-child(4) { width: 100px; }
+.table-container td:nth-child(5) { width: 150px; }
+.table-container td:nth-child(6) { width: 150px; }
+.table-container td:nth-child(7) { width: 200px; }
+.table-container td:nth-child(8) { width: 200px; }
+.table-container td:nth-child(9) { width: 120px; }
+.table-container td:nth-child(10) { width: 100px; }
+.table-container td:nth-child(11) { width: 100px; }
+.table-container td:nth-child(12) { width: 110px; }
+.table-container td:nth-child(13) { width: 80px; } */
+
 .table-container td {
     padding: 6px 4px;
     border-bottom: 1px solid #e0e0e0;
