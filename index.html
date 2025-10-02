@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Processor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📦 Invoice Processor</h1>
+            <p>Upload your PDF invoice to extract and process orders</p>
+        </div>
+
+        <div class="content">
+            <div class="drop-zone" id="dropZone">
+                <div class="drop-zone-icon">📄</div>
+                <div class="drop-zone-text">Drop PDF here or click to browse</div>
+                <div class="drop-zone-hint">Supports multi-page invoices (one order per page)</div>
+            </div>
+            <input type="file" id="fileInput" accept=".pdf">
+
+            <div class="status" id="status"></div>
+
+            <div class="summary" id="summary">
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <div class="summary-value" id="orderCount">0</div>
+                        <div class="summary-label">Orders Found</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value" id="pageCount">0</div>
+                        <div class="summary-label">Pages Processed</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-container" id="tableContainer">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order #</th>
+                            <th>Page</th>
+                            <th>Address</th>
+                            <th>Shipment Type</th>
+                            <th>Carrier</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTable"></tbody>
+                </table>
+            </div>
+
+            <div class="actions" id="actions">
+                <button class="btn btn-success" id="saveSheetBtn">
+                    💾 Save to Google Sheet
+                </button>
+                <button class="btn btn-primary" id="downloadCsvBtn">
+                    ⬇️ Download CSV
+                </button>
+                <button class="btn btn-secondary" id="resetBtn">
+                    🔄 Process Another PDF
+                </button>
+            </div>
+        </div>
+
+        <div class="footer">
+            Invoice Processor v1.0 - Test Version
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
