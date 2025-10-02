@@ -109,24 +109,25 @@ async function extractOrderFromText(page, pageNum) {
         console.log(`Line ${index}: "${line}"`);
     });
 
-    // Extract page number from "Page: X" line
-    let actualPageNum = pageNum; // default to loop value
-    const pageLine = lineStrings.find(l => l.includes('Page:'));
-    if (pageLine) {
-        const match = pageLine.match(/Page:\s*(\d+)/);
-        if (match) actualPageNum = parseInt(match[1], 10);
-    }
+    // Use the script's page counter (pageNum from the loop)
+    const actualPageNum = pageNum;
 
     // Extract data from specific lines
     let custNum = `ORDER-${actualPageNum}`;
     let poNumber = '';
     let orderDate = '';
     let customerName = '';
+    let shipToName = '';
     let customerAddress = '';
-    let address = '';
-    let city = '';
-    let state = '';
-    let zip = '';
+    let shipToAddress = '';
+    let customerStreet = '';
+    let customerCity = '';
+    let customerState = '';
+    let customerZip = '';
+    let shipToStreet = '';
+    let shipToCity = '';
+    let shipToState = '';
+    let shipToZip = '';
     let phone = '';
     let addressType = 'Residential';
     let shipVia = 'Misc. Common Carrier';
@@ -151,20 +152,52 @@ async function extractOrderFromText(page, pageNum) {
     // Extract Ship To information from Line 2
     const shipToLine = lineStrings.find(l => l.includes('Ship To:'));
     if (shipToLine) {
-        // Extract name - between "Ship To:" and first number
+        // Extract ship to name - between "Ship To:" and first number
         const nameMatch = shipToLine.match(/Ship To:\s+(.+?)\s+\d+/);
-        if (nameMatch) customerAddress = nameMatch[1].trim();
+        if (nameMatch) shipToName = nameMatch[1].trim();
 
-        // Extract street address - starts with number
-        const streetMatch = shipToLine.match(/(\d+\s+[A-Za-z\s]+(?:Way|Rd|St|Street|Avenue|Ave|Court|Drive|Dr|Lane|Ln|Boulevard|Blvd|Circle|Cir)[^\d]*(?:Ste|Suite|Apt|Unit)?\s*\d*)/i);
-        if (streetMatch) address = streetMatch[1].trim();
+        // Check if this is a Commercial address (has "Home Depot" in the line)
+        const isCommercial = shipToLine.includes('Home Depot');
 
-        // Extract city, state, zip - look for pattern "City, ST Zip"
-        const cityMatch = shipToLine.match(/([A-Za-z\s]+),\s*([A-Z]{2})\s+(\d{5})/);
-        if (cityMatch) {
-            city = cityMatch[1].trim();
-            state = cityMatch[2].trim();
-            zip = cityMatch[3].trim();
+        if (isCommercial) {
+            // For Commercial: Extract BOTH addresses
+            // Customer address: First street address (between name and "Home Depot")
+            const custStreetMatch = shipToLine.match(/Ship To:\s+.+?\s+(\d+\s+[A-Za-z\s]+(?:Way|Rd|St|Street|Avenue|Ave|Court|Drive|Dr|Lane|Ln|Boulevard|Blvd|Circle|Cir)[^\d]*(?:Ste|Suite|Apt|Unit)?\s*\d*)/i);
+            if (custStreetMatch) {
+                customerStreet = custStreetMatch[1].trim();
+            }
+
+            // Ship To address: Home Depot store address
+            const storeMatch = shipToLine.match(/Home Depot\s+(.+?)\s+([A-Za-z\s]+),\s*([A-Z]{2})\s+(\d{5})/);
+            if (storeMatch) {
+                shipToStreet = `Home Depot ${storeMatch[1].trim()}`;
+                shipToCity = storeMatch[2].trim();
+                shipToState = storeMatch[3].trim();
+                shipToZip = storeMatch[4].trim();
+            }
+
+            // For customer address, use same city/state/zip from ship to (assumption - adjust if needed)
+            customerCity = shipToCity;
+            customerState = shipToState;
+            customerZip = shipToZip;
+        } else {
+            // For Residential: Same address for both customer and ship to
+            const streetMatch = shipToLine.match(/(\d+\s+[A-Za-z\s]+(?:Way|Rd|St|Street|Avenue|Ave|Court|Drive|Dr|Lane|Ln|Boulevard|Blvd|Circle|Cir)[^\d,]*(?:Ste|Suite|Apt|Unit)?\s*\d*)/i);
+            if (streetMatch) {
+                customerStreet = streetMatch[1].trim();
+                shipToStreet = customerStreet;
+            }
+
+            // Extract city, state, zip
+            const cityMatch = shipToLine.match(/([A-Za-z\s]+),\s*([A-Z]{2})\s+(\d{5})/);
+            if (cityMatch) {
+                customerCity = cityMatch[1].trim();
+                customerState = cityMatch[2].trim();
+                customerZip = cityMatch[3].trim();
+                shipToCity = customerCity;
+                shipToState = customerState;
+                shipToZip = customerZip;
+            }
         }
 
         // Extract phone - pattern (###) ###-####
@@ -205,10 +238,9 @@ async function extractOrderFromText(page, pageNum) {
         addressType = addrTypeLine.trim();
     }
 
-    // Line 24: Quantity
-    const qtyLine = lineStrings.findIndex(l => l.trim() === 'Qty Shipped');
-    if (qtyLine !== -1 && lineStrings[qtyLine + 1]) {
-        const qtyMatch = lineStrings[qtyLine + 1].trim();
+    // Extract Quantity - Line 24 is exactly where it appears
+    if (lineStrings[24]) {
+        const qtyMatch = lineStrings[24].trim();
         if (/^\d+$/.test(qtyMatch)) {
             quantity = qtyMatch;
         }
@@ -221,11 +253,23 @@ async function extractOrderFromText(page, pageNum) {
         if (internetMatch) internetNumber = internetMatch[1];
     }
 
-    const fullAddress = [address, city, state, zip].filter(Boolean).join(', ');
+    const customerFullAddress = [customerStreet, customerCity, customerState, customerZip].filter(Boolean).join(', ');
+    const shipToFullAddress = [shipToStreet, shipToCity, shipToState, shipToZip].filter(Boolean).join(', ');
 
-    console.log(`Page ${pageNum} extracted:`, {
-        custNum, poNumber, orderDate, customerName, customerAddress, fullAddress, phone, addressType, modelNumber, internetNumber, quantity
-    });
+    console.log(`\n=== Page ${pageNum} Extracted Data ===`);
+    console.log(`Customer Order #:   ${custNum}`);
+    console.log(`PO Number:          ${poNumber}`);
+    console.log(`Date:               ${orderDate}`);
+    console.log(`Customer Name:      ${customerName}`);
+    console.log(`Ship To Name:       ${shipToName}`);
+    console.log(`Customer Address:   ${customerFullAddress}`);
+    console.log(`Ship To Address:    ${shipToFullAddress}`);
+    console.log(`Phone:              ${phone}`);
+    console.log(`Address Type:       ${addressType}`);
+    console.log(`Model Number:       ${modelNumber}`);
+    console.log(`Internet Number:    ${internetNumber}`);
+    console.log(`Quantity:           ${quantity}`);
+    console.log(`===================================\n`);
 
     return {
         custNum: custNum,
@@ -233,12 +277,17 @@ async function extractOrderFromText(page, pageNum) {
         date: orderDate,
         page: actualPageNum,
         customerName: customerName,
-        customerAddress: customerAddress,
-        address: fullAddress,
-        street: address,
-        city: city,
-        state: state,
-        zip: zip,
+        shipToName: shipToName,
+        customerAddress: customerFullAddress,
+        shipToAddress: shipToFullAddress,
+        customerStreet: customerStreet,
+        customerCity: customerCity,
+        customerState: customerState,
+        customerZip: customerZip,
+        shipToStreet: shipToStreet,
+        shipToCity: shipToCity,
+        shipToState: shipToState,
+        shipToZip: shipToZip,
         phone: phone,
         addressType: addressType,
         modelNumber: modelNumber,
@@ -252,15 +301,16 @@ function displayData() {
 
     invoiceData.forEach((order, index) => {
         const row = document.createElement('tr');
-        // Order matches HTML headers: Page, Date, Cust Order #, PO Number, Customer Name, Ship To Name, Ship To Address, Phone, Address Type, Model Number, Internet Num, Qty Shipped
+        // Order matches HTML headers: Page, Date, Cust Order #, PO Number, Customer Name, Ship To Name, Customer Address, Ship To Address, Phone, Address Type, Model Number, Internet Num, Qty Shipped
         row.innerHTML = `
             <td><input type="text" value="${order.page}" data-index="${index}" data-field="page"></td>
             <td><input type="text" value="${order.date}" data-index="${index}" data-field="date"></td>
             <td><input type="text" value="${order.custNum}" data-index="${index}" data-field="custNum"></td>
             <td><input type="text" value="${order.poNumber}" data-index="${index}" data-field="poNumber"></td>
             <td><input type="text" value="${order.customerName}" data-index="${index}" data-field="customerName"></td>
+            <td><input type="text" value="${order.shipToName}" data-index="${index}" data-field="shipToName"></td>
             <td><input type="text" value="${order.customerAddress}" data-index="${index}" data-field="customerAddress"></td>
-            <td><input type="text" value="${order.address}" data-index="${index}" data-field="address"></td>
+            <td><input type="text" value="${order.shipToAddress}" data-index="${index}" data-field="shipToAddress"></td>
             <td><input type="text" value="${order.phone}" data-index="${index}" data-field="phone"></td>
             <td><input type="text" value="${order.addressType}" data-index="${index}" data-field="addressType"></td>
             <td><input type="text" value="${order.modelNumber}" data-index="${index}" data-field="modelNumber"></td>
@@ -301,8 +351,9 @@ document.getElementById('downloadCsvBtn').addEventListener('click', () => {
         'Cust Order #': order.custNum,
         'PO Number': order.poNumber,
         'Customer Name': order.customerName,
-        'Ship To Name': order.customerAddress,
-        'Ship To Address': order.address,
+        'Ship To Name': order.shipToName,
+        'Customer Address': order.customerAddress,
+        'Ship To Address': order.shipToAddress,
         'Phone': order.phone,
         'Address Type': order.addressType,
         'Model Number': order.modelNumber,
