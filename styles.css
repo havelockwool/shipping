@@ -12,12 +12,16 @@ body {
 }
 
 .container {
-    max-width: 1200px;
+    max-width: 100%;
+    width: 100%;
+    height: calc(100vh - 40px);
     margin: 0 auto;
     background: white;
     border-radius: 12px;
     box-shadow: 0 20px 60px rgba(0,0,0,0.3);
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 .header {
@@ -39,17 +43,21 @@ body {
 
 .content {
     padding: 30px;
+    flex: 1;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
 }
 
 .drop-zone {
     border: 3px dashed #667eea;
     border-radius: 8px;
-    padding: 60px 20px;
+    padding: 20px 20px;
     text-align: center;
     background: #f8f9ff;
     transition: all 0.3s ease;
     cursor: pointer;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
 }
 
 .drop-zone:hover {
@@ -64,8 +72,8 @@ body {
 }
 
 .drop-zone-icon {
-    font-size: 48px;
-    margin-bottom: 15px;
+    font-size: 32px;
+    margin-bottom: 10px;
 }
 
 .drop-zone-text {
@@ -136,34 +144,35 @@ body {
     text-overflow: clip;
 }
 
-/* Custom column widths */
-.table-container th:nth-child(1) { width: 30px; }  /* Page */
-.table-container th:nth-child(2) { width: 50px; }  /* Date */
-.table-container th:nth-child(3) { width: 80px; } /* Cust Order # */
-.table-container th:nth-child(4) { width: 80px; } /* PO Number */
-.table-container th:nth-child(5) { width: 120px; } /* Customer Name */
-.table-container th:nth-child(6) { width: 120px; } /* Ship To Name */
-.table-container th:nth-child(7) { width: 250px; } /* Customer Address */
-.table-container th:nth-child(8) { width: 250px; } /* Ship To Address */
-.table-container th:nth-child(9) { width: 100px; } /* Phone */
-.table-container th:nth-child(10) { width: 80px; } /* Address Type */
-.table-container th:nth-child(11) { width: 60px; } /* Model Number */
-.table-container th:nth-child(12) { width: 80px; } /* Internet Num */
-.table-container th:nth-child(13) { width: 50px; }  /* Qty Shipped */
+/* Custom column widths - percentages to fit screen */
+.table-container th:nth-child(1) { width: 3%; }   /* Page */
+.table-container th:nth-child(2) { width: 5%; }   /* Date */
+.table-container th:nth-child(3) { width: 8%; }   /* Cust Order # */
+.table-container th:nth-child(4) { width: 7%; }   /* PO Number */
+.table-container th:nth-child(5) { width: 10%; }  /* Customer Name */
+.table-container th:nth-child(6) { width: 10%; }  /* Ship To Name */
+.table-container th:nth-child(7) { width: 16%; }  /* Customer Address */
+.table-container th:nth-child(8) { width: 16%; }  /* Ship To Address */
+.table-container th:nth-child(9) { width: 8%; }   /* Phone */
+.table-container th:nth-child(10) { width: 6%; }  /* Address Type */
+.table-container th:nth-child(11) { width: 5%; }  /* Model Number */
+.table-container th:nth-child(12) { width: 6%; }  /* Internet Num */
+.table-container th:nth-child(13) { width: 4%; }  /* Qty Shipped */
 
-/* .table-container td:nth-child(1) { width: 50px; }
-.table-container td:nth-child(2) { width: 80px; }
-.table-container td:nth-child(3) { width: 120px; }
-.table-container td:nth-child(4) { width: 100px; }
-.table-container td:nth-child(5) { width: 150px; }
-.table-container td:nth-child(6) { width: 150px; }
-.table-container td:nth-child(7) { width: 200px; }
-.table-container td:nth-child(8) { width: 200px; }
-.table-container td:nth-child(9) { width: 120px; }
-.table-container td:nth-child(10) { width: 100px; }
-.table-container td:nth-child(11) { width: 100px; }
-.table-container td:nth-child(12) { width: 110px; }
-.table-container td:nth-child(13) { width: 80px; } */
+.table-container td:nth-child(1) { width: 3%; }
+.table-container td:nth-child(2) { width: 5%; }
+.table-container td:nth-child(3) { width: 8%; }
+.table-container td:nth-child(4) { width: 7%; }
+.table-container td:nth-child(5) { width: 10%; }
+.table-container td:nth-child(6) { width: 10%; }
+.table-container td:nth-child(7) { width: 16%; }
+.table-container td:nth-child(8) { width: 16%; }
+.table-container td:nth-child(9) { width: 8%; }
+.table-container td:nth-child(10) { width: 6%; }
+.table-container td:nth-child(11) { width: 5%; }
+.table-container td:nth-child(12) { width: 6%; }
+.table-container td:nth-child(13) { width: 4%; }
+
 
 .table-container td {
     padding: 6px 4px;
@@ -256,30 +265,32 @@ input[type="text"]:focus {
 .summary {
     display: none;
     background: #f8f9ff;
-    padding: 20px;
+    padding: 10px 20px;
     border-radius: 8px;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
 .summary-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 15px;
+    display: flex;
+    gap: 30px;
+    align-items: center;
 }
 
 .summary-item {
-    text-align: center;
-}
-
-.summary-value {
-    font-size: 2em;
-    font-weight: bold;
-    color: #667eea;
+    display: flex;
+    gap: 8px;
+    align-items: center;
 }
 
 .summary-label {
     color: #666;
-    margin-top: 5px;
+    font-weight: 600;
+}
+
+.summary-value {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #667eea;
 }
 
 .footer {
