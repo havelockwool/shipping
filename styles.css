@@ -142,6 +142,22 @@ body {
     overflow: hidden;
     white-space: nowrap;
     text-overflow: clip;
+    position: relative;
+    resize: horizontal;
+}
+
+.table-container th .resizer {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 5px;
+    cursor: col-resize;
+    user-select: none;
+    height: 100%;
+}
+
+.table-container th .resizer:hover {
+    background: rgba(255, 255, 255, 0.3);
 }
 
 /* Custom column widths */
@@ -155,26 +171,26 @@ body {
 .table-container th:nth-child(8) { width: 250px; } /* Ship To Address */
 .table-container th:nth-child(9) { width: 80px; } /* Phone */
 .table-container th:nth-child(10) { width: 70px; } /* Address Type */
-.table-container th:nth-child(11) { width: 60px; } /* Model Number */
+.table-container th:nth-child(11) { width: 80px; } /* Model Number */
 .table-container th:nth-child(12) { width: 70px; } /* Internet Num */
 .table-container th:nth-child(13) { width: 30px; }  /* Qty Shipped */
 
-Custom column widths - percentages to fit screen
-.table-container th:nth-child(1) { width: 3%; }   /* Page */
-.table-container th:nth-child(2) { width: 5%; }   /* Date */
-.table-container th:nth-child(3) { width: 8%; }   /* Cust Order # */
-.table-container th:nth-child(4) { width: 7%; }   /* PO Number */
-.table-container th:nth-child(5) { width: 10%; }  /* Customer Name */
-.table-container th:nth-child(6) { width: 10%; }  /* Ship To Name */
-.table-container th:nth-child(7) { width: 20%; }  /* Customer Address */
-.table-container th:nth-child(8) { width: 20%; }  /* Ship To Address */
-.table-container th:nth-child(9) { width: 8%; }   /* Phone */
-.table-container th:nth-child(10) { width: 6%; }  /* Address Type */
-.table-container th:nth-child(11) { width: 5%; }  /* Model Number */
-.table-container th:nth-child(12) { width: 6%; }  /* Internet Num */
-.table-container th:nth-child(13) { width: 3%; }  /* Qty Shipped */
+/* Custom column widths - percentages to fit screen*/
+/* .table-container th:nth-child(1) { width: 3%; }   
+.table-container th:nth-child(2) { width: 5%; }  
+.table-container th:nth-child(3) { width: 8%; }   
+.table-container th:nth-child(4) { width: 7%; }  
+.table-container th:nth-child(5) { width: 10%; }  
+.table-container th:nth-child(6) { width: 10%; }  
+.table-container th:nth-child(7) { width: 20%; }  
+.table-container th:nth-child(8) { width: 20%; }  
+.table-container th:nth-child(9) { width: 8%; }  
+.table-container th:nth-child(10) { width: 6%; }  
+.table-container th:nth-child(11) { width: 5%; }  
+.table-container th:nth-child(12) { width: 6%; }  
+.table-container th:nth-child(13) { width: 3%; }  */
 
-.table-container td:nth-child(1) { width: 3%; }
+/* .table-container td:nth-child(1) { width: 3%; }
 .table-container td:nth-child(2) { width: 5%; }
 .table-container td:nth-child(3) { width: 8%; }
 .table-container td:nth-child(4) { width: 7%; }
@@ -186,7 +202,7 @@ Custom column widths - percentages to fit screen
 .table-container td:nth-child(10) { width: 6%; }
 .table-container td:nth-child(11) { width: 5%; }
 .table-container td:nth-child(12) { width: 6%; }
-.table-container td:nth-child(13) { width: 4%; }
+.table-container td:nth-child(13) { width: 4%; } */
 
 
 .table-container td {

@@ -182,18 +182,14 @@ async function extractOrderFromText(page, pageNum) {
             customerZip = shipToZip;
         } else {
             // For Residential: Same address for both customer and ship to
-            const streetMatch = shipToLine.match(/(\d+\s+[A-Za-z\s]+(?:Way|Rd|St|Street|Avenue|Ave|Court|Drive|Dr|Lane|Ln|Boulevard|Blvd|Circle|Cir)[^\d,]*(?:Ste|Suite|Apt|Unit)?\s*\d*)/i);
+            // Extract street - look for number followed by street name, stop before city
+            const streetMatch = shipToLine.match(/(\d+\s+[A-Za-z\s]+(?:Way|Rd|St|Street|Avenue|Ave|Court|Drive|Dr|Lane|Ln|Boulevard|Blvd|Circle|Cir|Parkway|Pkwy)(?:\s+(?:Ste|Suite|Apt|Unit|#)\s*\d+)?)\s+([A-Za-z\s]+),\s*([A-Z]{2})\s+(\d{5})/i);
             if (streetMatch) {
                 customerStreet = streetMatch[1].trim();
+                customerCity = streetMatch[2].trim();
+                customerState = streetMatch[3].trim();
+                customerZip = streetMatch[4].trim();
                 shipToStreet = customerStreet;
-            }
-
-            // Extract city, state, zip
-            const cityMatch = shipToLine.match(/([A-Za-z\s]+),\s*([A-Z]{2})\s+(\d{5})/);
-            if (cityMatch) {
-                customerCity = cityMatch[1].trim();
-                customerState = cityMatch[2].trim();
-                customerZip = cityMatch[3].trim();
                 shipToCity = customerCity;
                 shipToState = customerState;
                 shipToZip = customerZip;
@@ -336,6 +332,50 @@ function displayData() {
             const field = e.target.dataset.field;
             invoiceData[index][field] = e.target.value;
         });
+    });
+
+    // Make columns resizable
+    makeColumnsResizable();
+}
+
+function makeColumnsResizable() {
+    const table = document.querySelector('.table-container table');
+    const cols = table.querySelectorAll('th');
+
+    cols.forEach((col) => {
+        // Create resizer element
+        const resizer = document.createElement('div');
+        resizer.classList.add('resizer');
+        col.appendChild(resizer);
+
+        let x = 0;
+        let w = 0;
+
+        const mouseDownHandler = function (e) {
+            x = e.clientX;
+            const styles = window.getComputedStyle(col);
+            w = parseInt(styles.width, 10);
+
+            document.addEventListener('mousemove', mouseMoveHandler);
+            document.addEventListener('mouseup', mouseUpHandler);
+
+            resizer.classList.add('resizing');
+            col.style.cursor = 'col-resize';
+        };
+
+        const mouseMoveHandler = function (e) {
+            const dx = e.clientX - x;
+            col.style.width = `${w + dx}px`;
+        };
+
+        const mouseUpHandler = function () {
+            document.removeEventListener('mousemove', mouseMoveHandler);
+            document.removeEventListener('mouseup', mouseUpHandler);
+            resizer.classList.remove('resizing');
+            col.style.cursor = '';
+        };
+
+        resizer.addEventListener('mousedown', mouseDownHandler);
     });
 }
 
