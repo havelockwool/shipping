@@ -420,13 +420,7 @@ document.getElementById('downloadCsvBtn').addEventListener('click', () => {
     showStatus('CSV file downloaded successfully!', 'success');
 });
 
-document.getElementById('saveSheetBtn').addEventListener('click', () => {
-    // TODO: Implement Google Sheets API integration
-    showStatus('Google Sheets integration coming soon! For now, use the CSV download.', 'info');
-
-    // Log data for debugging
-    console.log('Data ready for Google Sheets:', invoiceData);
-});
+// Google Sheets button is now handled in googleSheets.js
 
 document.getElementById('resetBtn').addEventListener('click', () => {
     invoiceData = [];
