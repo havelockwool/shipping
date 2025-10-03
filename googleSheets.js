@@ -1,133 +1,170 @@
 /**
- * Google Sheets Integration for Workspace
- *
- * Opens Apps Script in a popup for authentication with @havelockwool.com
- * The Apps Script is set to "Anyone within havelockwool.com"
+ * Show copyable table in popup
  */
-
-const APPS_SCRIPT_URL = 'https://script.google.com/a/macros/havelockwool.com/s/AKfycbyIlbfRQxUh59z_ybCUjzi2e1yS3W7VTJjw9n4ehgk5K5e736LBpOsMEOY3YIs-XKGU/exec';
-
-/**
- * Send data to Google Sheets by opening popup with form POST
- * This works with "Anyone within havelockwool.com" setting
- */
-async function saveToGoogleSheet() {
+function showCopyableTable() {
     if (invoiceData.length === 0) {
-        showStatus('No data to save. Please upload a PDF first.', 'error');
+        showStatus('No data to copy. Please upload a PDF first.', 'error');
         return;
     }
 
-    try {
-        showStatus('Opening authentication window...', 'info');
+    // Prepare headers
+    const headers = ['Page', 'Date', 'Cust Order #', 'PO Number', 'Customer Name',
+                     'Ship To Name', 'Customer Address', 'Ship To Address', 'Phone',
+                     'Address Type', 'Model Number', 'Internet Num', 'Qty Shipped'];
 
-        // Prepare the data payload
-        const payload = {
-            orders: invoiceData.map(order => ({
-                page: order.page || '',
-                date: order.date || '',
-                custNum: order.custNum || '',
-                poNumber: order.poNumber || '',
-                customerName: order.customerName || '',
-                shipToName: order.shipToName || '',
-                customerAddress: order.customerAddress || '',
-                shipToAddress: order.shipToAddress || '',
-                phone: order.phone || '',
-                addressType: order.addressType || '',
-                modelNumber: order.modelNumber || '',
-                internetNumber: order.internetNumber || '',
-                quantity: order.quantity || ''
-            }))
-        };
+    // Prepare rows
+    const rows = invoiceData.map(order => [
+        order.page || '',
+        order.date || '',
+        order.custNum || '',
+        order.poNumber || '',
+        order.customerName || '',
+        order.shipToName || '',
+        order.customerAddress || '',
+        order.shipToAddress || '',
+        order.phone || '',
+        order.addressType || '',
+        order.modelNumber || '',
+        order.internetNumber || '',
+        order.quantity || ''
+    ]);
 
-        // Create a hidden form to POST data
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = APPS_SCRIPT_URL;
-        form.target = 'GoogleSheetsAuth';
-        form.style.display = 'none';
+    // Create HTML table
+    let tableHtml = '<table border="1" style="border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; font-size: 12px;">';
 
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'data';
-        input.value = JSON.stringify(payload);
-        form.appendChild(input);
+    // Add headers
+    tableHtml += '<thead><tr style="background-color: #f0f0f0;">';
+    headers.forEach(header => {
+        tableHtml += `<th style="padding: 8px; text-align: left;">${header}</th>`;
+    });
+    tableHtml += '</tr></thead>';
 
-        document.body.appendChild(form);
-
-        // Open popup window
-        const popup = window.open(
-            '',
-            'GoogleSheetsAuth',
-            'width=600,height=700,menubar=no,toolbar=no,location=no'
-        );
-
-        if (!popup) {
-            showStatus('❌ Popup blocked. Please allow popups for this site.', 'error');
-            document.body.removeChild(form);
-            return;
-        }
-
-        showStatus('✓ Please wait while data is being sent...', 'info');
-
-        // Submit the form to the popup
-        form.submit();
-
-        // Clean up form
-        setTimeout(() => {
-            document.body.removeChild(form);
-        }, 1000);
-
-        // Listen for popup messages
-        window.addEventListener('message', function handleMessage(event) {
-            // Security: verify origin
-            if (!event.origin.includes('script.google')) {
-                return;
-            }
-
-            const data = event.data;
-
-            if (data.success) {
-                showStatus(`✓ Successfully saved ${invoiceData.length} order(s)!`, 'success');
-                setTimeout(() => {
-                    if (popup && !popup.closed) {
-                        popup.close();
-                    }
-                }, 2000);
-            } else if (data.error) {
-                showStatus(`Error: ${data.error}`, 'error');
-            }
-
-            window.removeEventListener('message', handleMessage);
+    // Add data rows
+    tableHtml += '<tbody>';
+    rows.forEach(row => {
+        tableHtml += '<tr>';
+        row.forEach(cell => {
+            tableHtml += `<td style="padding: 8px; border: 1px solid #ddd;">${cell}</td>`;
         });
+        tableHtml += '</tr>';
+    });
+    tableHtml += '</tbody></table>';
 
-    } catch (error) {
-        showStatus(`Error: ${error.message}`, 'error');
-        console.error('Error:', error);
+    // Create popup HTML
+    const popupHtml = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 20px; }
+                .header { margin-bottom: 20px; }
+                .copy-btn {
+                    background-color: #4CAF50;
+                    color: white;
+                    padding: 12px 24px;
+                    border: none;
+                    cursor: pointer;
+                    font-size: 16px;
+                    margin: 10px 0;
+                    border-radius: 4px;
+                }
+                .copy-btn:hover { background-color: #45a049; }
+                .table-container {
+                    max-height: 500px;
+                    overflow: auto;
+                    border: 1px solid #ddd;
+                    margin: 10px 0;
+                }
+                .instructions {
+                    background-color: #e3f2fd;
+                    padding: 12px;
+                    border-radius: 4px;
+                    margin: 10px 0;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h2>📋 Copy Data to Google Sheets</h2>
+                <p>${rows.length} order(s) ready to copy</p>
+            </div>
+
+            <button class="copy-btn" onclick="copyTable()">📋 Copy Table to Clipboard</button>
+
+            <div class="instructions">
+                <strong>How to paste into Google Sheets:</strong>
+                <ol style="margin: 8px 0; padding-left: 20px;">
+                    <li>Click "Copy Table to Clipboard" button above</li>
+                    <li>Open your Google Sheet</li>
+                    <li>Click on cell A1 (or wherever you want the data)</li>
+                    <li>Press Ctrl+V (or Cmd+V on Mac) to paste</li>
+                </ol>
+            </div>
+
+            <div class="table-container">
+                ${tableHtml}
+            </div>
+
+            <script>
+                function copyTable() {
+                    const table = document.querySelector('table');
+                    const range = document.createRange();
+                    range.selectNode(table);
+                    window.getSelection().removeAllRanges();
+                    window.getSelection().addRange(range);
+                    document.execCommand('copy');
+                    window.getSelection().removeAllRanges();
+
+                    const btn = document.querySelector('.copy-btn');
+                    btn.textContent = '✓ Copied to Clipboard!';
+                    btn.style.backgroundColor = '#2196F3';
+
+                    setTimeout(() => {
+                        btn.textContent = '📋 Copy Table to Clipboard';
+                        btn.style.backgroundColor = '#4CAF50';
+                    }, 2000);
+                }
+            </script>
+        </body>
+        </html>
+    `;
+
+    // Open popup
+    const popup = window.open('', 'CopyableData', 'width=900,height=700,menubar=no,toolbar=no,location=no');
+
+    if (!popup) {
+        showStatus('❌ Popup blocked. Please allow popups for this site.', 'error');
+        return;
     }
+
+    popup.document.write(popupHtml);
+    popup.document.close();
+
+    showStatus('✓ Table opened in new window. Click "Copy Table" to copy data.', 'success');
 }
 
 /**
- * Initialize Google Sheets button
+ * Initialize copy table button
  */
-function initGoogleSheetsButton() {
+function initCopyTableButton() {
     const btn = document.getElementById('saveSheetBtn');
     if (!btn) {
-        console.error('Save to Google Sheet button not found');
+        console.error('Copy table button not found');
         return;
     }
 
     btn.addEventListener('click', () => {
-        console.log('Save to Google Sheet clicked');
-        saveToGoogleSheet();
+        console.log('Copy table clicked');
+        showCopyableTable();
     });
 
     btn.style.opacity = '1';
-    btn.title = 'Save to Google Sheet (Requires @havelockwool.com account)';
+    btn.title = 'Show copyable table';
 }
 
 // Initialize when DOM is ready
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initGoogleSheetsButton);
+    document.addEventListener('DOMContentLoaded', initCopyTableButton);
 } else {
-    initGoogleSheetsButton();
+    initCopyTableButton();
 }
