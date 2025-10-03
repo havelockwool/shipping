@@ -8,13 +8,12 @@ function showCopyableTable() {
     }
 
     // Prepare headers
-    const headers = ['Page', 'Date', 'Cust Order #', 'PO Number', 'Customer Name',
+    const headers = ['Date', 'Cust Order #', 'PO Number', 'Customer Name',
                      'Ship To Name', 'Customer Address', 'Ship To Address', 'Phone',
                      'Address Type', 'Model Number', 'Internet Num', 'Qty Shipped'];
 
-    // Prepare rows
+    // Prepare rows (without page column)
     const rows = invoiceData.map(order => [
-        order.page || '',
         order.date || '',
         order.custNum || '',
         order.poNumber || '',
@@ -91,39 +90,57 @@ function showCopyableTable() {
 
             <button class="copy-btn" onclick="copyTable()">📋 Copy Table to Clipboard</button>
 
-            <div class="instructions">
-                <strong>How to paste into Google Sheets:</strong>
-                <ol style="margin: 8px 0; padding-left: 20px;">
-                    <li>Click "Copy Table to Clipboard" button above</li>
-                    <li>Open your Google Sheet</li>
-                    <li>Click on cell A1 (or wherever you want the data)</li>
-                    <li>Press Ctrl+V (or Cmd+V on Mac) to paste</li>
-                </ol>
-            </div>
-
             <div class="table-container">
                 ${tableHtml}
             </div>
 
             <script>
-                function copyTable() {
-                    const table = document.querySelector('table');
-                    const range = document.createRange();
-                    range.selectNode(table);
-                    window.getSelection().removeAllRanges();
-                    window.getSelection().addRange(range);
-                    document.execCommand('copy');
-                    window.getSelection().removeAllRanges();
+                async function copyTable() {
+                    try {
+                        // Get table data as text (tab-separated for spreadsheet compatibility)
+                        const rows = document.querySelectorAll('tbody tr');
+                        let textData = '';
 
-                    const btn = document.querySelector('.copy-btn');
-                    btn.textContent = '✓ Copied to Clipboard!';
-                    btn.style.backgroundColor = '#2196F3';
+                        rows.forEach(row => {
+                            const cells = row.querySelectorAll('td');
+                            const rowData = Array.from(cells).map(cell => cell.textContent).join('\\t');
+                            textData += rowData + '\\n';
+                        });
 
-                    setTimeout(() => {
-                        btn.textContent = '📋 Copy Table to Clipboard';
-                        btn.style.backgroundColor = '#4CAF50';
-                    }, 2000);
+                        // Try modern clipboard API first
+                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                            await navigator.clipboard.writeText(textData);
+                        } else {
+                            // Fallback to old method
+                            const tbody = document.querySelector('tbody');
+                            const range = document.createRange();
+                            range.selectNode(tbody);
+                            window.getSelection().removeAllRanges();
+                            window.getSelection().addRange(range);
+                            document.execCommand('copy');
+                            window.getSelection().removeAllRanges();
+                        }
+
+                        const btn = document.querySelector('.copy-btn');
+                        btn.textContent = '✓ Copied to Clipboard!';
+                        btn.style.backgroundColor = '#2196F3';
+
+                        setTimeout(() => {
+                            btn.textContent = '📋 Copy Table to Clipboard';
+                            btn.style.backgroundColor = '#4CAF50';
+                        }, 2000);
+                    } catch (error) {
+                        console.error('Copy failed:', error);
+                        alert('Copy failed. Please use Ctrl+C to copy the table manually.');
+                    }
                 }
+
+                // Auto-copy when page loads
+                window.addEventListener('load', () => {
+                    setTimeout(() => {
+                        copyTable();
+                    }, 100);
+                });
             </script>
         </body>
         </html>

@@ -332,6 +332,40 @@ function displayData() {
             const field = e.target.dataset.field;
             invoiceData[index][field] = e.target.value;
         });
+
+        // Add Ctrl+Click to copy field value
+        input.addEventListener('click', async (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+                const value = e.target.value;
+
+                try {
+                    // Try modern clipboard API
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        await navigator.clipboard.writeText(value);
+                    } else {
+                        // Fallback: select text and copy
+                        e.target.select();
+                        document.execCommand('copy');
+                    }
+
+                    // Visual feedback
+                    const originalBg = e.target.style.backgroundColor;
+                    e.target.style.backgroundColor = '#4CAF50';
+                    e.target.style.color = 'white';
+
+                    setTimeout(() => {
+                        e.target.style.backgroundColor = originalBg;
+                        e.target.style.color = '';
+                    }, 300);
+
+                    showStatus(`✓ Copied: ${value}`, 'success');
+                } catch (err) {
+                    console.error('Copy failed:', err);
+                    showStatus('Copy failed. Please try again.', 'error');
+                }
+            }
+        });
     });
 
     // Make columns resizable
