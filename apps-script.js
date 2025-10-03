@@ -118,21 +118,94 @@ function doPost(e) {
       sheet.appendRow(row);
     });
 
-    // Return success HTML with post message
+    // Create HTML table for easy copying
+    let tableHtml = '<table border="1" style="border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; font-size: 12px;">';
+
+    // Add headers
+    tableHtml += '<thead><tr style="background-color: #f0f0f0;">';
+    headers.forEach(header => {
+      tableHtml += `<th style="padding: 8px; text-align: left;">${header}</th>`;
+    });
+    tableHtml += '</tr></thead>';
+
+    // Add data rows
+    tableHtml += '<tbody>';
+    rows.forEach(row => {
+      tableHtml += '<tr>';
+      row.forEach(cell => {
+        tableHtml += `<td style="padding: 8px; border: 1px solid #ddd;">${cell}</td>`;
+      });
+      tableHtml += '</tr>';
+    });
+    tableHtml += '</tbody></table>';
+
+    // Return success HTML with post message and copyable table
     return HtmlService.createHtmlOutput(`
       <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; }
+            .status { margin-bottom: 20px; }
+            .copy-btn {
+              background-color: #4CAF50;
+              color: white;
+              padding: 10px 20px;
+              border: none;
+              cursor: pointer;
+              font-size: 14px;
+              margin: 10px 0;
+            }
+            .copy-btn:hover { background-color: #45a049; }
+            .table-container {
+              max-height: 400px;
+              overflow: auto;
+              border: 1px solid #ddd;
+              margin: 10px 0;
+            }
+          </style>
+        </head>
         <body>
-          <h2>✓ Success!</h2>
-          <p>Successfully imported ${rows.length} order(s)</p>
-          <p>Authenticated as: ${userEmail}</p>
-          <p>This window will close automatically...</p>
+          <div class="status">
+            <h2>✓ Success!</h2>
+            <p>Successfully imported ${rows.length} order(s) to IMPORT sheet</p>
+            <p>Authenticated as: ${userEmail}</p>
+          </div>
+
+          <button class="copy-btn" onclick="copyTable()">📋 Copy Table to Clipboard</button>
+
+          <div class="table-container" id="tableContainer">
+            ${tableHtml}
+          </div>
+
+          <p style="color: #666; font-size: 12px;">
+            Click "Copy Table" above, then paste (Ctrl+V) into Google Sheets
+          </p>
+
           <script>
+            function copyTable() {
+              const table = document.querySelector('table');
+              const range = document.createRange();
+              range.selectNode(table);
+              window.getSelection().removeAllRanges();
+              window.getSelection().addRange(range);
+              document.execCommand('copy');
+              window.getSelection().removeAllRanges();
+
+              const btn = document.querySelector('.copy-btn');
+              btn.textContent = '✓ Copied!';
+              btn.style.backgroundColor = '#2196F3';
+
+              setTimeout(() => {
+                btn.textContent = '📋 Copy Table to Clipboard';
+                btn.style.backgroundColor = '#4CAF50';
+              }, 2000);
+            }
+
             if (window.opener) {
               window.opener.postMessage({
                 success: true,
                 rowsAdded: ${rows.length}
               }, '*');
-              setTimeout(() => window.close(), 2000);
             }
           </script>
         </body>
