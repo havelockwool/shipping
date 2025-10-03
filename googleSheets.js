@@ -138,7 +138,8 @@ async function appendToGoogleSheet() {
             range: 'IMPORT!A:M',
             valueInputOption: 'USER_ENTERED',
             resource: {
-                values: [headers, ...rows]
+                //values: [headers, ...rows]
+                  values: [...rows]
             },
         });
 
