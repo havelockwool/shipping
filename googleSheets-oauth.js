@@ -11,7 +11,7 @@
  * 4. Make sure authorized JavaScript origins includes: https://havelockwool.github.io
  */
 
-const GOOGLE_CLIENT_ID = '504638897346-pk8t5vrtd8la6ol81hllgeje84ssenv8.apps.googleusercontent.com';
+const GOOGLE_CLIENT_ID = '504638897346-hqf8mdu7rlrp8g9adalmadi7q79s77e2.apps.googleusercontent.com';
 const APPS_SCRIPT_URL = 'https://script.google.com/a/macros/havelockwool.com/s/AKfycbyIlbfRQxUh59z_ybCUjzi2e1yS3W7VTJjw9n4ehgk5K5e736LBpOsMEOY3YIs-XKGU/exec';
 
 let tokenClient;

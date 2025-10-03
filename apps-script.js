@@ -12,7 +12,7 @@
  * 8. Settings:
  *    - Description: "Invoice Data Import"
  *    - Execute as: "Me"
- *    - Who has access: "Anyone" (this is safe - see security notes below)
+ *    - Who has access: "Anyone within havelockwool.com"
  * 9. Click Deploy
  * 10. Copy the Web app URL (looks like: https://script.google.com/macros/s/...../exec)
  * 11. Paste that URL into your frontend code where it says APPS_SCRIPT_URL
@@ -29,22 +29,17 @@
  */
 function doPost(e) {
   try {
-    // Optional: Restrict to your GitHub Pages domain only
-    // Uncomment these lines for additional security:
-    /*
-    const allowedOrigins = [
-      'https://havelockwool.github.io',
-      'http://localhost', // for local testing
-    ];
-    const origin = e.parameter.origin || '';
-    const isAllowed = allowedOrigins.some(allowed => origin.startsWith(allowed));
-    if (!isAllowed) {
+    // Verify user is authenticated with @havelockwool.com account
+    const userEmail = Session.getActiveUser().getEmail();
+
+    if (!userEmail || !userEmail.endsWith('@havelockwool.com')) {
       return ContentService.createTextOutput(JSON.stringify({
         success: false,
-        error: 'Origin not allowed'
+        error: 'Unauthorized: Must be signed in with @havelockwool.com account'
       })).setMimeType(ContentService.MimeType.JSON);
     }
-    */
+
+    Logger.log('Authenticated user: ' + userEmail);
 
     // Parse the incoming JSON data
     const data = JSON.parse(e.postData.contents);
