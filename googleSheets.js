@@ -1,86 +1,26 @@
 /**
- * Google Sheets Integration with OAuth Authentication
+ * Google Sheets Integration for Workspace
  *
- * This requires users to sign in with their @havelockwool.com Google account.
- * Works with your Apps Script set to "Anyone within havelockwool.com"
- *
- * SETUP:
- * 1. Go to Google Cloud Console: https://console.cloud.google.com
- * 2. Enable Google+ API (for user info)
- * 3. Your OAuth Client ID is already set up
- * 4. Make sure authorized JavaScript origins includes: https://havelockwool.github.io
+ * Opens Apps Script in a popup for authentication with @havelockwool.com
+ * The Apps Script is set to "Anyone within havelockwool.com"
  */
 
-const GOOGLE_CLIENT_ID = '504638897346-pk8t5vrtd8la6ol81hllgeje84ssenv8.apps.googleusercontent.com';
 const APPS_SCRIPT_URL = 'https://script.google.com/a/macros/havelockwool.com/s/AKfycbyIlbfRQxUh59z_ybCUjzi2e1yS3W7VTJjw9n4ehgk5K5e736LBpOsMEOY3YIs-XKGU/exec';
 
-let tokenClient;
-let accessToken = null;
-let userEmail = null;
-
 /**
- * Initialize Google Identity Services
+ * Send data to Google Sheets by opening popup
+ * This works with "Anyone within havelockwool.com" setting
  */
-function initGoogleAuth() {
-    tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: GOOGLE_CLIENT_ID,
-        scope: 'https://www.googleapis.com/auth/userinfo.email',
-        callback: (response) => {
-            if (response.error) {
-                showStatus(`Auth error: ${response.error}`, 'error');
-                return;
-            }
-            accessToken = response.access_token;
-            getUserInfo();
-        },
-    });
-}
-
-/**
- * Get user email to verify domain
- */
-async function getUserInfo() {
-    try {
-        const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-            headers: {
-                'Authorization': `Bearer ${accessToken}`
-            }
-        });
-        const data = await response.json();
-        userEmail = data.email;
-
-        // Verify user is from havelockwool.com
-        if (!userEmail.endsWith('@havelockwool.com')) {
-            showStatus('❌ Access denied. Must use @havelockwool.com account.', 'error');
-            accessToken = null;
-            userEmail = null;
-            return;
-        }
-
-        showStatus(`✓ Signed in as ${userEmail}`, 'success');
-        // Now send the data
-        await sendToGoogleSheet();
-
-    } catch (error) {
-        showStatus(`Error: ${error.message}`, 'error');
-        console.error('Error getting user info:', error);
+async function saveToGoogleSheet() {
+    if (invoiceData.length === 0) {
+        showStatus('No data to save. Please upload a PDF first.', 'error');
+        return;
     }
-}
 
-/**
- * Trigger sign-in flow
- */
-function signIn() {
-    tokenClient.requestAccessToken({ prompt: 'select_account' });
-}
-
-/**
- * Send data to Google Sheets
- */
-async function sendToGoogleSheet() {
     try {
-        showStatus('Sending data to Google Sheet...', 'info');
+        showStatus('Opening authentication window...', 'info');
 
+        // Prepare the data payload
         const payload = {
             orders: invoiceData.map(order => ({
                 page: order.page || '',
@@ -99,45 +39,46 @@ async function sendToGoogleSheet() {
             }))
         };
 
-        // Send with access token
-        const response = await fetch(APPS_SCRIPT_URL, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload)
-        });
+        // Encode data as URL parameter
+        const encodedData = encodeURIComponent(JSON.stringify(payload));
+        const url = `${APPS_SCRIPT_URL}?data=${encodedData}`;
 
-        const result = await response.json();
+        // Open in popup window
+        const popup = window.open(
+            url,
+            'GoogleSheetsAuth',
+            'width=600,height=700,menubar=no,toolbar=no,location=no'
+        );
 
-        if (result.success) {
-            showStatus(`✓ Successfully saved ${invoiceData.length} order(s)!`, 'success');
-        } else {
-            showStatus(`Error: ${result.error}`, 'error');
+        if (!popup) {
+            showStatus('❌ Popup blocked. Please allow popups for this site.', 'error');
+            return;
         }
+
+        showStatus('✓ Please sign in with @havelockwool.com in the popup window...', 'info');
+
+        // Listen for popup messages
+        window.addEventListener('message', function handleMessage(event) {
+            // Security: verify origin
+            if (event.origin !== 'https://script.google.com' && event.origin !== 'https://script.googleusercontent.com') {
+                return;
+            }
+
+            const data = event.data;
+
+            if (data.success) {
+                showStatus(`✓ Successfully saved ${invoiceData.length} order(s)!`, 'success');
+                popup.close();
+            } else if (data.error) {
+                showStatus(`Error: ${data.error}`, 'error');
+            }
+
+            window.removeEventListener('message', handleMessage);
+        });
 
     } catch (error) {
         showStatus(`Error: ${error.message}`, 'error');
-        console.error('Error sending to Google Sheet:', error);
-    }
-}
-
-/**
- * Main function when Save button is clicked
- */
-async function saveToGoogleSheet() {
-    if (invoiceData.length === 0) {
-        showStatus('No data to save. Please upload a PDF first.', 'error');
-        return;
-    }
-
-    // Check if already authenticated
-    if (accessToken && userEmail) {
-        await sendToGoogleSheet();
-    } else {
-        // Trigger sign-in
-        signIn();
+        console.error('Error:', error);
     }
 }
 
@@ -157,31 +98,12 @@ function initGoogleSheetsButton() {
     });
 
     btn.style.opacity = '1';
-    btn.title = 'Save to Google Sheet (Sign in with @havelockwool.com)';
+    btn.title = 'Save to Google Sheet (Requires @havelockwool.com account)';
 }
 
-// Initialize when DOM and Google scripts are ready
-function onGoogleScriptsLoaded() {
-    initGoogleAuth();
+// Initialize when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initGoogleSheetsButton);
+} else {
     initGoogleSheetsButton();
 }
-
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        if (typeof google !== 'undefined') {
-            onGoogleScriptsLoaded();
-        }
-    });
-} else {
-    if (typeof google !== 'undefined') {
-        onGoogleScriptsLoaded();
-    }
-}
-
-// Expose for script loading
-window.gisLoaded = function() {
-    console.log('✓ Google Identity Services loaded');
-    if (document.readyState !== 'loading') {
-        onGoogleScriptsLoaded();
-    }
-};

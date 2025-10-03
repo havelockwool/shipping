@@ -122,12 +122,145 @@ function doPost(e) {
 }
 
 /**
- * Handle GET requests (optional - for testing)
+ * Handle GET requests with data parameter
  */
 function doGet(e) {
-  return ContentService.createTextOutput(JSON.stringify({
-    status: 'OK',
-    message: 'Invoice Import API is running. Use POST to send data.',
-    timestamp: new Date().toISOString()
-  })).setMimeType(ContentService.MimeType.JSON);
+  try {
+    // Verify user is authenticated with @havelockwool.com account
+    const userEmail = Session.getActiveUser().getEmail();
+
+    if (!userEmail || !userEmail.endsWith('@havelockwool.com')) {
+      return HtmlService.createHtmlOutput(`
+        <html>
+          <body>
+            <h2>Access Denied</h2>
+            <p>You must sign in with a @havelockwool.com account.</p>
+            <p>Please close this window and try again.</p>
+            <script>
+              if (window.opener) {
+                window.opener.postMessage({
+                  success: false,
+                  error: 'Must use @havelockwool.com account'
+                }, '*');
+              }
+            </script>
+          </body>
+        </html>
+      `);
+    }
+
+    // Check if data parameter exists
+    if (!e.parameter.data) {
+      return HtmlService.createHtmlOutput(`
+        <html>
+          <body>
+            <h2>Invoice Import API</h2>
+            <p>Status: Running</p>
+            <p>Authenticated as: ${userEmail}</p>
+          </body>
+        </html>
+      `);
+    }
+
+    // Parse the data
+    const data = JSON.parse(decodeURIComponent(e.parameter.data));
+
+    // Validate data structure
+    if (!data.orders || !Array.isArray(data.orders)) {
+      throw new Error('Invalid data structure: orders array required');
+    }
+
+    // Get the spreadsheet and IMPORT sheet
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('IMPORT');
+
+    if (!sheet) {
+      throw new Error('IMPORT sheet not found');
+    }
+
+    // Prepare headers
+    const headers = [
+      'Page', 'Date', 'Cust Order #', 'PO Number', 'Customer Name',
+      'Ship To Name', 'Customer Address', 'Ship To Address', 'Phone',
+      'Address Type', 'Model Number', 'Internet Num', 'Qty Shipped'
+    ];
+
+    // Prepare rows from the order data
+    const rows = data.orders.map(order => [
+      order.page || '',
+      order.date || '',
+      order.custNum || '',
+      order.poNumber || '',
+      order.customerName || '',
+      order.shipToName || '',
+      order.customerAddress || '',
+      order.shipToAddress || '',
+      order.phone || '',
+      order.addressType || '',
+      order.modelNumber || '',
+      order.internetNumber || '',
+      order.quantity || ''
+    ]);
+
+    // Check if we should add headers
+    const lastRow = sheet.getLastRow();
+    let shouldAddHeaders = false;
+
+    if (lastRow === 0) {
+      shouldAddHeaders = true;
+    } else {
+      const firstRow = sheet.getRange(1, 1, 1, headers.length).getValues()[0];
+      const hasHeaders = firstRow[0] === 'Page' && firstRow[2] === 'Cust Order #';
+      if (!hasHeaders) {
+        shouldAddHeaders = true;
+      }
+    }
+
+    // Append data to sheet
+    if (shouldAddHeaders) {
+      sheet.appendRow(headers);
+    }
+
+    rows.forEach(row => {
+      sheet.appendRow(row);
+    });
+
+    // Return success HTML with post message
+    return HtmlService.createHtmlOutput(`
+      <html>
+        <body>
+          <h2>✓ Success!</h2>
+          <p>Successfully imported ${rows.length} order(s)</p>
+          <p>Authenticated as: ${userEmail}</p>
+          <p>This window will close automatically...</p>
+          <script>
+            if (window.opener) {
+              window.opener.postMessage({
+                success: true,
+                rowsAdded: ${rows.length}
+              }, '*');
+              setTimeout(() => window.close(), 2000);
+            }
+          </script>
+        </body>
+      </html>
+    `);
+
+  } catch (error) {
+    return HtmlService.createHtmlOutput(`
+      <html>
+        <body>
+          <h2>Error</h2>
+          <p>${error.toString()}</p>
+          <script>
+            if (window.opener) {
+              window.opener.postMessage({
+                success: false,
+                error: '${error.toString()}'
+              }, '*');
+            }
+          </script>
+        </body>
+      </html>
+    `);
+  }
 }
