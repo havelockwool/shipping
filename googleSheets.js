@@ -8,7 +8,7 @@
 const APPS_SCRIPT_URL = 'https://script.google.com/a/macros/havelockwool.com/s/AKfycbyIlbfRQxUh59z_ybCUjzi2e1yS3W7VTJjw9n4ehgk5K5e736LBpOsMEOY3YIs-XKGU/exec';
 
 /**
- * Send data to Google Sheets by opening popup
+ * Send data to Google Sheets by opening popup with form POST
  * This works with "Anyone within havelockwool.com" setting
  */
 async function saveToGoogleSheet() {
@@ -39,28 +39,48 @@ async function saveToGoogleSheet() {
             }))
         };
 
-        // Encode data as URL parameter
-        const encodedData = encodeURIComponent(JSON.stringify(payload));
-        const url = `${APPS_SCRIPT_URL}?data=${encodedData}`;
+        // Create a hidden form to POST data
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = APPS_SCRIPT_URL;
+        form.target = 'GoogleSheetsAuth';
+        form.style.display = 'none';
 
-        // Open in popup window
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'data';
+        input.value = JSON.stringify(payload);
+        form.appendChild(input);
+
+        document.body.appendChild(form);
+
+        // Open popup window
         const popup = window.open(
-            url,
+            '',
             'GoogleSheetsAuth',
             'width=600,height=700,menubar=no,toolbar=no,location=no'
         );
 
         if (!popup) {
             showStatus('❌ Popup blocked. Please allow popups for this site.', 'error');
+            document.body.removeChild(form);
             return;
         }
 
-        showStatus('✓ Please sign in with @havelockwool.com in the popup window...', 'info');
+        showStatus('✓ Please wait while data is being sent...', 'info');
+
+        // Submit the form to the popup
+        form.submit();
+
+        // Clean up form
+        setTimeout(() => {
+            document.body.removeChild(form);
+        }, 1000);
 
         // Listen for popup messages
         window.addEventListener('message', function handleMessage(event) {
             // Security: verify origin
-            if (event.origin !== 'https://script.google.com' && event.origin !== 'https://script.googleusercontent.com') {
+            if (!event.origin.includes('script.google')) {
                 return;
             }
 
@@ -68,7 +88,11 @@ async function saveToGoogleSheet() {
 
             if (data.success) {
                 showStatus(`✓ Successfully saved ${invoiceData.length} order(s)!`, 'success');
-                popup.close();
+                setTimeout(() => {
+                    if (popup && !popup.closed) {
+                        popup.close();
+                    }
+                }, 2000);
             } else if (data.error) {
                 showStatus(`Error: ${data.error}`, 'error');
             }
