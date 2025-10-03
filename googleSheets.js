@@ -1,6 +1,6 @@
 // Google Sheets API configuration
-const GOOGLE_CLIENT_ID = '504638897346-pk8t5vrtd8la6ol81hllgeje84ssenv8.apps.googleusercontent.com';
-const GOOGLE_API_KEY = 'AIzaSyActeCP4_W4q3NIdIYueWRKlwsRqES3W6o';
+const GOOGLE_CLIENT_ID = '.apps.googleusercontent.com';
+const GOOGLE_API_KEY = '_';
 const GOOGLE_SHEET_ID = '1tYK9vcHh2Ry8xXL9Iuym6RZfwn4_eL0SpSWiDV28wl8'; // Your Google Sheet ID
 const DISCOVERY_DOC = 'https://sheets.googleapis.com/$discovery/rest?version=v4';
 const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
